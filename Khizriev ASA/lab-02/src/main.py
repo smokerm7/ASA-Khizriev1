@@ -1,17 +1,19 @@
-import modules.perfomance_analysis as pa
-import modules.task_solutions as ts
+# main.py
+
+from modules import perfomance_analysis as pa
+from modules import task_solutions as ts
 
 if __name__ == "__main__":
-    # Performance analysis block
     sizes = [100, 1000, 10000, 100000]
-    pa.Visualization(sizes)
+    pa.visualize(sizes)
 
-    # bracket task
-    print(ts.bracket_task("{[()]}"))
+    # Скобки
+    print(ts.check_brackets("{[()]}"))
 
-    # printing task
-    orders = {"Отчёт по продажам", "Дипломная работа", "Рецепт пирога"}
-    ts.printing_task(orders)
+    # Печать
+    orders = ["Отчёт по продажам", "Дипломная работа", "Рецепт пирога"]
+    ts.printing_queue(orders)
 
-    # palindrome task
-    print(ts.palindrome_task("12332"))
+    # Палиндром
+    print(ts.is_palindrome("12321"))
+    print(ts.is_palindrome("12332"))
