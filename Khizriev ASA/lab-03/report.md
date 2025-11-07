@@ -25,283 +25,178 @@
 ### Ключевые фрагменты кода
 
 ```PYTHON
-# recursion.py
+# modules/recursion.py
 
 def factorial(n):
-    """
-    Вычисляет факториал положительного целого числа n рекурсивно.
-    Аргументы:
-        n: положительное целое число, для которого вычисляется факториал.
-    Возвращает:
-        n!, если n >= 1; -1 для некорректных (неположительных) аргументов.
-    """
+    """Рекурсивный факториал числа n"""
+    if n < 1:
+        return -1
     if n == 1:
         return 1
-    elif n > 1:
-        return n * factorial(n-1)
-    else:
+    return n * factorial(n - 1)
+
+
+def fibonacci(n):
+    """Рекурсивное n-ое число Фибоначчи"""
+    if n < 1:
         return -1
-
-# Временная сложность: O(n)
-# Глубина рекурсии: n
-
-
-def fibbonachi(n):
-    """
-    Вычисляет n-ое число Фибоначчи рекурсивно.
-    Аргументы:
-        n: целое число (индекс) — позиция числа Фибоначчи в последовательности.
-    Возвращает:
-        n-ое число Фибоначчи
-        -1 для некорректных (неположительных) аргументов.
-    """
-    if n > 0 and n < 3:
+    if n < 3:
         return 1
-    elif n > 2:
-        return fibbonachi(n-1) + fibbonachi(n-2)
-    else:
-        return -1
-
-# Временная сложность: O(2^n)
-# Глубина рекурсии: n
+    return fibonacci(n - 1) + fibonacci(n - 2)
 
 
-def quick_power(val, p):
-    """
-    Быстрое возведение в степень (возведение val в целую степень p) рекурсивно.
-    Аргументы:
-        val: число — основание степени.
-        p: целое число — показатель степени.
-    Возвращает:
-        val**p как результат возведения в степень.
-    """
+def fast_power(x, p):
+    """Быстрое возведение x в степень p"""
     if p < 0:
-        return quick_power(1/val, -p)
+        return fast_power(1 / x, -p)
     if p == 0:
         return 1
     if p % 2 == 0:
-        return quick_power(val*val, p/2)
-    else:
-        return val*quick_power(val*val, (p-1)/2)
+        return fast_power(x * x, p // 2)
+    return x * fast_power(x * x, (p - 1) // 2)
 
-# Временная сложность: O(log p)
-# Глубина рекурсии: log₂|p| (по основанию 2)
 
 ```
 
 ```PYTHON
-# memoization.py
+# modules/memoization.py
+
 import timeit
 import matplotlib.pyplot as plt
 
-# Глобальная переменная для подсчёта числа рекурсивных вызовов
-fib_memo_calls = 0
 fib_calls = 0
+fib_memo_calls = 0
 
 
-def naive_fibbonachi(n):
-    """
-    Вычисляет n-ое число Фибоначчи рекурсивно.
-    Аргументы:
-        n: целое число (индекс) — позиция числа Фибоначчи в последовательности.
-    Возвращает:
-        n-ое число Фибоначчи
-        -1 для некорректных (неположительных) аргументов.
-    """
+def naive_fib(n):
     global fib_calls
     fib_calls += 1
-    if n > 0 and n < 3:
-        return 1
-    elif n > 2:
-        return naive_fibbonachi(n-1) + naive_fibbonachi(n-2)
-    else:
+    if n < 1:
         return -1
+    if n < 3:
+        return 1
+    return naive_fib(n - 1) + naive_fib(n - 2)
 
 
-def fibbonachi_memoized(n, memo={}):
-    """
-    Вычисляет n-ое число Фибоначчи с мемоизацией.
-    Аргументы:
-        n: целое число — позиция числа Фибоначчи в последовательности.
-        memo: словарь для хранения уже вычисленных значений Фибоначчи.
-    Возвращает:
-        n-ое число Фибоначчи
-    """
+def fib_memo(n, memo={}):
     global fib_memo_calls
     fib_memo_calls += 1
     if n in memo:
         return memo[n]
-    if n > 0 and n < 3:
-        return 1
-    elif n > 2:
-        memo[n] = (fibbonachi_memoized(n-1, memo) +
-                   fibbonachi_memoized(n-2, memo))
-        return memo[n]
-    else:
+    if n < 1:
         return -1
+    if n < 3:
+        return 1
+    memo[n] = fib_memo(n - 1, memo) + fib_memo(n - 2, memo)
+    return memo[n]
 
 
-def compare_fibbonachi(n):
-    """
-    Сравнивает результаты вычисления n-го числа Фибоначчи с мемоизацией и без.
-    Аргументы:
-        n: целое число — позиция числа Фибоначчи в последовательности.
-    Возвращает:
-        Словарь содержащий два ключа time, calls значениями
-        которых являются кортежи из двух значений:
-        (результат без мемоизации, результат с мемоизацией).
-    """
-    global fib_memo_calls
-    global fib_calls
+def compare_fib(n):
+    global fib_calls, fib_memo_calls
 
-    start1 = timeit.default_timer()
-    naive_fibbonachi(n)
-    end1 = timeit.default_timer()
-    fib_time = (end1 - start1) * 1000
-
-    fib_count = fib_calls
+    start = timeit.default_timer()
+    naive_fib(n)
+    end = timeit.default_timer()
+    naive_time = (end - start) * 1000
+    naive_count = fib_calls
     fib_calls = 0
 
-    start2 = timeit.default_timer()
-    fibbonachi_memoized(n)
-    end2 = timeit.default_timer()
-    fib_memo_time = (end2 - start2) * 1000
-
-    fib_memo_count = fib_memo_calls
+    start = timeit.default_timer()
+    fib_memo(n)
+    end = timeit.default_timer()
+    memo_time = (end - start) * 1000
+    memo_count = fib_memo_calls
     fib_memo_calls = 0
 
-    result = {"time": (fib_time, fib_memo_time),
-              "calls": (fib_count, fib_memo_count)}
-
-    return result
+    return {"time": (naive_time, memo_time), "calls": (naive_count, memo_count)}
 
 
-def Visualization(sizes):
-    """
-    Визуализация результатов замеров времени вычисления числа Фибоначчи
-    с мемоизацией и без.
-    """
-    naive_times = []
-    memoized_times = []
-    print(sizes)
-    for size in sizes:
-        result = compare_fibbonachi(size)
-        naive_times.append(result["time"][0])
-        memoized_times.append(result["time"][1])
+def visualize_fib(sizes):
+    naive_times, memo_times = [], []
+    for n in sizes:
+        res = compare_fib(n)
+        naive_times.append(res["time"][0])
+        memo_times.append(res["time"][1])
 
-    plt.plot(sizes, naive_times, marker="o", color="red", label="Naive")
-    plt.plot(sizes, memoized_times, marker="o", color="blue", label="Memoized")
-    plt.xlabel("n (индекс числа Фибоначчи)")
-    plt.ylabel("Время выполнения (ms)")
-    plt.title("Сравнение времени вычисления "
-              "числа Фибоначчи с мемоизацией и без")
-    plt.legend(loc="upper left", title="Метод")
-    plt.savefig("ОТЧЁТ/fibonacci_comparison.png", dpi=300, bbox_inches='tight')
+    plt.plot(sizes, naive_times, "ro-", label="Naive")
+    plt.plot(sizes, memo_times, "bo-", label="Memoized")
+    plt.xlabel("n")
+    plt.ylabel("Time ms")
+    plt.title("Naive vs Memoized Fibonacci")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("ОТЧЁТ/fibonacci_comparison.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-    # Характеристики вычислительной машины
-    pc_info = """
-   Спецификации тестовой системы:
-- Процессор: Intel Core i5-12400
-- Оперативная память: 32 GB
-- Видеокарта: NVIDIA GeForce RTX 3070 Ti
-- Операционная система: Windows 10 Pro
-- Интерпретатор Python: 3.12
-    """
-    print(pc_info)
-    print(f"{naive_times} - naive \n {memoized_times} - memoized")
+    print("Naive times:", naive_times)
+    print("Memoized times:", memo_times)
+    print("""
 
 ```
 
 ```PYTHON
-# recursion_tasks.py
+# modules/recursion_tasks.py
 
 import os
 
 
-def binary_search_recursive(arr, target, left, right):
-    """
-    Рекурсивно ищет элемент target в отсортированном списке arr.
-    Аргументы:
-            arr: отсортированный список элементов.
-            target: искомый элемент.
-            left: левая граница поиска.
-            right: правая граница поиска.
-    Возвращает:
-            Индекс target в arr, если найден, иначе -1.
-    """
+def binary_search_rec(arr, target, left, right):
     if left > right:
         return -1
     mid = (left + right) // 2
     if arr[mid] == target:
         return mid
-    elif arr[mid] > target:
-        return binary_search_recursive(arr, target, left, mid - 1)
-    else:
-        return binary_search_recursive(arr, target, mid + 1, right)
+    if arr[mid] > target:
+        return binary_search_rec(arr, target, left, mid - 1)
+    return binary_search_rec(arr, target, mid + 1, right)
 
 
-def print_directory_tree(path, indent=""):
-    """
-    Рекурсивно выводит дерево каталогов и файлов, начиная с заданного пути.
-    Аргументы:
-        path: строка — путь к директории, с которой начинается обход.
-        indent: строка — отступ для текущего уровня (служебный параметр).
-    """
+def print_tree(path, indent=""):
     print(f"{indent}{os.path.basename(path)}/")
     try:
-        for entry in os.listdir(path):
-            full_path = os.path.join(path, entry)
-            if os.path.isdir(full_path):
-                print_directory_tree(full_path, indent + "    ")
+        for f in os.listdir(path):
+            full = os.path.join(path, f)
+            if os.path.isdir(full):
+                print_tree(full, indent + "    ")
             else:
-                print(f"{indent}    {entry}")
+                print(f"{indent}    {f}")
     except PermissionError:
         print(f"{indent}    [Permission Denied]")
 
 
-def hanoi(n, source, target, auxiliary):
-    """
-    Рекурсивно решает задачу Ханойские башни для n дисков и 3 стержней.
-    Аргументы:
-        n: количество дисков.
-        source: имя исходного стержня (строка).
-        target: имя целевого стержня (строка).
-        auxiliary: имя вспомогательного стержня (строка).
-    """
+def hanoi(n, source, target, aux):
     if n == 1:
-        print(f"Переместить диск 1 с {source} на {target}")
+        print(f"Move disk 1 from {source} to {target}")
         return
-    hanoi(n-1, source, auxiliary, target)
-    print(f"Переместить диск {n} с {source} на {target}")
-    hanoi(n-1, auxiliary, target, source)
+    hanoi(n - 1, source, aux, target)
+    print(f"Move disk {n} from {source} to {target}")
+    hanoi(n - 1, aux, target, source)
 
 ```
 
 ```PYTHON
 # main.py
 
-from modules.recursion import factorial, fibbonachi, quick_power
-from modules.memoization import compare_fibbonachi, Visualization
-from modules.recursion_tasks import binary_search_recursive, print_directory_tree, hanoi
+from modules.recursion import factorial, fibonacci, fast_power
+from modules.memoization import compare_fib, visualize_fib
+from modules.recursion_tasks import binary_search_rec, print_tree, hanoi
 
-# Демонстрация работы функций из модуля recursion
+# Recursion demo
 print(factorial(1), factorial(5), factorial(7), factorial(9), factorial(-1))
-print(fibbonachi(1), fibbonachi(5), fibbonachi(
-    7), fibbonachi(15), fibbonachi(-1))
-print(quick_power(5, 7), quick_power(2, 21), quick_power(2, 65))
+print(fibonacci(1), fibonacci(5), fibonacci(7), fibonacci(15), fibonacci(-1))
+print(fast_power(5, 7), fast_power(2, 21), fast_power(2, 65))
 
-# Демонстрация работы функций из модуля memoization
-print(compare_fibbonachi(35))
+# Memoization demo
+print(compare_fib(35))
 
-# Демонстрация работы функций из модуля recursion_tasks
+# Recursion tasks demo
 arr = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
-print(binary_search_recursive(arr, 7, 0, len(arr)-1))
-print_directory_tree("./src")
-hanoi(3, 'A', 'C', 'B')
+print(binary_search_rec(arr, 7, 0, len(arr)-1))
+print_tree("./src")
+hanoi(3, "A", "C", "B")
 
-# Демонстрация работы функции визуализации из модуля memoization
-Visualization([5, 10, 15, 20, 25, 30, 35])
+# Fibonacci visualization
+visualize_fib([5, 10, 15, 20, 25, 30, 35])
 
 ```
 
