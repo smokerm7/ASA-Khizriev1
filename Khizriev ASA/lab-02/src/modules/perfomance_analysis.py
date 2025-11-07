@@ -86,4 +86,5 @@ def visualize(sizes=[100, 1000, 10000, 100000]):
     print("Время очереди list:", list_queue_times)
     print("Время очереди deque:", deque_times)
 
+
    
