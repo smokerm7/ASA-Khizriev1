@@ -1,119 +1,72 @@
-# memoization.py
+# modules/memoization.py
+
 import timeit
 import matplotlib.pyplot as plt
 
-# Глобальная переменная для подсчёта числа рекурсивных вызовов
-fib_memo_calls = 0
 fib_calls = 0
+fib_memo_calls = 0
 
 
-def naive_fibbonachi(n):
-    """
-    Вычисляет n-ое число Фибоначчи рекурсивно.
-    Аргументы:
-        n: целое число (индекс) — позиция числа Фибоначчи в последовательности.
-    Возвращает:
-        n-ое число Фибоначчи
-        -1 для некорректных (неположительных) аргументов.
-    """
+def naive_fib(n):
     global fib_calls
     fib_calls += 1
-    if n > 0 and n < 3:
-        return 1
-    elif n > 2:
-        return naive_fibbonachi(n-1) + naive_fibbonachi(n-2)
-    else:
+    if n < 1:
         return -1
+    if n < 3:
+        return 1
+    return naive_fib(n - 1) + naive_fib(n - 2)
 
 
-def fibbonachi_memoized(n, memo={}):
-    """
-    Вычисляет n-ое число Фибоначчи с мемоизацией.
-    Аргументы:
-        n: целое число — позиция числа Фибоначчи в последовательности.
-        memo: словарь для хранения уже вычисленных значений Фибоначчи.
-    Возвращает:
-        n-ое число Фибоначчи
-    """
+def fib_memo(n, memo={}):
     global fib_memo_calls
     fib_memo_calls += 1
     if n in memo:
         return memo[n]
-    if n > 0 and n < 3:
-        return 1
-    elif n > 2:
-        memo[n] = (fibbonachi_memoized(n-1, memo) +
-                   fibbonachi_memoized(n-2, memo))
-        return memo[n]
-    else:
+    if n < 1:
         return -1
+    if n < 3:
+        return 1
+    memo[n] = fib_memo(n - 1, memo) + fib_memo(n - 2, memo)
+    return memo[n]
 
 
-def compare_fibbonachi(n):
-    """
-    Сравнивает результаты вычисления n-го числа Фибоначчи с мемоизацией и без.
-    Аргументы:
-        n: целое число — позиция числа Фибоначчи в последовательности.
-    Возвращает:
-        Словарь содержащий два ключа time, calls значениями
-        которых являются кортежи из двух значений:
-        (результат без мемоизации, результат с мемоизацией).
-    """
-    global fib_memo_calls
-    global fib_calls
+def compare_fib(n):
+    global fib_calls, fib_memo_calls
 
-    start1 = timeit.default_timer()
-    naive_fibbonachi(n)
-    end1 = timeit.default_timer()
-    fib_time = (end1 - start1) * 1000
-
-    fib_count = fib_calls
+    start = timeit.default_timer()
+    naive_fib(n)
+    end = timeit.default_timer()
+    naive_time = (end - start) * 1000
+    naive_count = fib_calls
     fib_calls = 0
 
-    start2 = timeit.default_timer()
-    fibbonachi_memoized(n)
-    end2 = timeit.default_timer()
-    fib_memo_time = (end2 - start2) * 1000
-
-    fib_memo_count = fib_memo_calls
+    start = timeit.default_timer()
+    fib_memo(n)
+    end = timeit.default_timer()
+    memo_time = (end - start) * 1000
+    memo_count = fib_memo_calls
     fib_memo_calls = 0
 
-    result = {"time": (fib_time, fib_memo_time),
-              "calls": (fib_count, fib_memo_count)}
-
-    return result
+    return {"time": (naive_time, memo_time), "calls": (naive_count, memo_count)}
 
 
-def Visualization(sizes):
-    """
-    Визуализация результатов замеров времени вычисления числа Фибоначчи
-    с мемоизацией и без.
-    """
-    naive_times = []
-    memoized_times = []
-    print(sizes)
-    for size in sizes:
-        result = compare_fibbonachi(size)
-        naive_times.append(result["time"][0])
-        memoized_times.append(result["time"][1])
+def visualize_fib(sizes):
+    naive_times, memo_times = [], []
+    for n in sizes:
+        res = compare_fib(n)
+        naive_times.append(res["time"][0])
+        memo_times.append(res["time"][1])
 
-    plt.plot(sizes, naive_times, marker="o", color="red", label="Naive")
-    plt.plot(sizes, memoized_times, marker="o", color="blue", label="Memoized")
-    plt.xlabel("n (индекс числа Фибоначчи)")
-    plt.ylabel("Время выполнения (ms)")
-    plt.title("Сравнение времени вычисления "
-              "числа Фибоначчи с мемоизацией и без")
-    plt.legend(loc="upper left", title="Метод")
-    plt.savefig("report/fibonacci_comparison.png", dpi=300, bbox_inches='tight')
+    plt.plot(sizes, naive_times, "ro-", label="Naive")
+    plt.plot(sizes, memo_times, "bo-", label="Memoized")
+    plt.xlabel("n")
+    plt.ylabel("Time ms")
+    plt.title("Naive vs Memoized Fibonacci")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("ОТЧЁТ/fibonacci_comparison.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-    # Характеристики вычислительной машины
-    pc_info = """
-    Характеристики ПК для тестирования:
-    - Процессор: Intel Core i5-12500H @ 2.50GHz
-    - Оперативная память: 32 GB DDR4
-    - ОС: Windows 11
-    - Python: 3.12
-    """
-    print(pc_info)
-    print(f"{naive_times} - naive \n {memoized_times} - memoized")
+    print("Naive times:", naive_times)
+    print("Memoized times:", memo_times)
+
