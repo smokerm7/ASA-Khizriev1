@@ -1,117 +1,89 @@
+# modules/perfomance_analysis.py
+
 import timeit
-
 from collections import deque
-import matplotlib.pyplot as plt
 from modules.linked_list import LinkedList
+import matplotlib.pyplot as plt
 
 
-def measure_list_realization(count):
-    """
-    Измеряет время вставки элементов в начало списка.
-    Вычисляет для list и linked_list
-    Возвращает: Кортеж из двух элементов
-    (list_time, linked_list_time )
-    """
-    # Тест времени вставки для списка
-    test_list = list()
-    start1 = timeit.default_timer()
-    for i in range(count):
-        test_list.insert(0, i)
-    end1 = timeit.default_timer()
-
-    # Тест времени вставки для связанного списка
-    test_linked_list = LinkedList()
-    start2 = timeit.default_timer()
-    for i in range(count):
-        test_linked_list.insert_at_start(i)
-    end2 = timeit.default_timer()
-    return ((end1 - start1) * 1000, (end2 - start2) * 1000)
+def test_list_insert(n):
+    """Вставка в начало обычного списка."""
+    lst = []
+    start = timeit.default_timer()
+    for i in range(n):
+        lst.insert(0, i)
+    end = timeit.default_timer()
+    return (end - start) * 1000  # ms
 
 
-def measure_queue_realization(count):
-    """
-    Измеряет время реализации очереди.
-    Вычисляет для list и deque
-    Возвращает: Кортеж из двух элементов
-    (list_time, deque_time )
-    """
-    # Тест списка для реализации очереди
-    test_list_queue = list()
-    for i in range(count):
-        test_list_queue.append(i)
-
-    start1 = timeit.default_timer()
-    for i in range(count):
-        test_list_queue.pop(0)
-    end1 = timeit.default_timer()
-
-    # Тест деки для реализации очереди
-    test_deque_queue = deque()
-    for i in range(count):
-        test_deque_queue.append(i)
-
-    start2 = timeit.default_timer()
-    for i in range(count):
-        test_deque_queue.popleft()
-    end2 = timeit.default_timer()
-    return ((end1 - start1) * 1000, (end2 - start2) * 1000)
-
-# Visualuzation block
+def test_linkedlist_insert(n):
+    """Вставка в начало связанного списка."""
+    ll = LinkedList()
+    start = timeit.default_timer()
+    for i in range(n):
+        ll.add_first(i)
+    end = timeit.default_timer()
+    return (end - start) * 1000  # ms
 
 
-def Visualization(sizes=[100, 1000, 10000, 100000]):
-    """
-    Визуализация результатов замеров времени вставки в список
-    и реализации очереди.
-    Сохраняет графики в папку ОТЧЁТ.
-    """
-    list_measure = []
-    linked_list_measure = []
-    for size in sizes:
-        measures = measure_list_realization(size)
-        list_measure.append(measures[0])
-        linked_list_measure.append(measures[1])
+def test_list_queue(n):
+    """Очередь на списке."""
+    lst = list(range(n))
+    start = timeit.default_timer()
+    for _ in range(n):
+        lst.pop(0)
+    end = timeit.default_timer()
+    return (end - start) * 1000
 
-    plt.plot(sizes, list_measure, marker="o", color="red", label="list")
-    plt.plot(sizes, linked_list_measure, marker="o",
-             color="green", label="linked_list")
-    plt.xlabel("Количество элементов N")
-    plt.ylabel("Время выполнения ms")
-    plt.title("Тест времени вставки для списка")
-    plt.legend(loc="upper left", title="Collections")
-    plt.savefig('./report/time_complexity_plot_list.png',
-                dpi=300, bbox_inches='tight')
+
+def test_deque_queue(n):
+    """Очередь на deque."""
+    dq = deque(range(n))
+    start = timeit.default_timer()
+    for _ in range(n):
+        dq.popleft()
+    end = timeit.default_timer()
+    return (end - start) * 1000
+
+
+def visualize(sizes=[100, 1000, 10000, 100000]):
+    """Строим графики для списка, связанного списка и очередей."""
+    list_times = []
+    ll_times = []
+    for n in sizes:
+        list_times.append(test_list_insert(n))
+        ll_times.append(test_linkedlist_insert(n))
+
+    plt.plot(sizes, list_times, "ro-", label="list")
+    plt.plot(sizes, ll_times, "go-", label="linked list")
+    plt.xlabel("N")
+    plt.ylabel("Time ms")
+    plt.title("Вставка в начало")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("./report/list_vs_linkedlist.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-    list_queue_measures = []
-    deque_measures = []
-    for size in sizes:
-        measures = measure_list_realization(size)
-        list_queue_measures.append(measures[0])
-        deque_measures.append(measures[1])
+    # очередь
+    list_queue_times = []
+    deque_times = []
+    for n in sizes:
+        list_queue_times.append(test_list_queue(n))
+        deque_times.append(test_deque_queue(n))
 
-    plt.plot(sizes, list_queue_measures, marker="o", color="red", label="list")
-    plt.plot(sizes, deque_measures, marker="o",
-             color="green", label="deque")
-    plt.xlabel("Количество элементов N")
-    plt.ylabel("Время выполнения ms")
-    plt.title("Тест времени реализации очереди")
-    plt.legend(loc="upper left", title="Collections")
-    plt.savefig('./report/time_complexity_plot_queue.png',
-                dpi=300, bbox_inches='tight')
+    plt.plot(sizes, list_queue_times, "ro-", label="list queue")
+    plt.plot(sizes, deque_times, "go-", label="deque queue")
+    plt.xlabel("N")
+    plt.ylabel("Time ms")
+    plt.title("Очередь: list vs deque")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("./report/queue_comparison.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-    # Характеристики вычислительной машины
-    pc_info = """
-    Характеристики ПК для тестирования:
-    - Процессор: Intel Core i5-12500H @ 2.50GHz
-    - Оперативная память: 32 GB DDR4
-    - ОС: Windows 11
-    - Python: 3.12
-    """
-    print(pc_info)
-    print(f"{list_measure} - list \n {linked_list_measure} -linked_list \n"
-          f"{list_queue_measures} - list \n {deque_measures} - deque")
+    print("Время вставки в список:", list_times)
+    print("Время вставки в linked list:", ll_times)
+    print("Время очереди list:", list_queue_times)
+    print("Время очереди deque:", deque_times)
 
-
-Visualization()
+   
